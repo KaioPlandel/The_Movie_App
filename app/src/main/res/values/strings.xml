@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">The Movie App</string>
+    <string name="image_profile">profile_image</string>
 </resources>
