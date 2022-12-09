@@ -1,0 +1,66 @@
+package com.plandel.themovieapp.screens.main_screen
+
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.plandel.themovieapp.model.Movie
+import com.plandel.themovieapp.repository.MovieRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@HiltViewModel
+class MainViewModel @Inject constructor(private val repository: MovieRepository) : ViewModel() {
+
+    private var _moviesA = MutableStateFlow(emptyList<Movie>())
+    val moviesA: StateFlow<List<Movie>> get() = _moviesA
+
+    private var _moviesTop = MutableStateFlow(emptyList<Movie>())
+    val moviesTop: StateFlow<List<Movie>> get() = _moviesTop
+
+    private var _moviesFavorite= MutableStateFlow(emptyList<Movie>())
+    val moviesFavorite: StateFlow<List<Movie>> get() = _moviesFavorite
+
+    init {
+        getLastMovies("lasted")
+        getTopMovies("top")
+        getFavoriteMovies("favorite")
+    }
+
+    fun getLastMovies(session: String) {
+        viewModelScope.launch {
+            try {
+                val response = repository.getMovies(session)
+                _moviesA.value = response.movies
+
+            } catch (e: Exception) {
+
+            }
+        }
+    }
+    fun getTopMovies(session: String) {
+        viewModelScope.launch {
+            try {
+                val response = repository.getMovies(session)
+                _moviesTop.value = response.movies
+
+            } catch (e: Exception) {
+
+            }
+        }
+    }
+    fun getFavoriteMovies(session: String) {
+        viewModelScope.launch {
+            try {
+                val response = repository.getMovies(session)
+                _moviesFavorite.value = response.movies
+
+            } catch (e: Exception) {
+
+            }
+        }
+    }
+
+}
