@@ -3,23 +3,33 @@ package com.plandel.themovieapp.screens.main_screen
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -44,43 +54,52 @@ fun MainScreen(
     val state by model.moviesA.collectAsState()
     val stateTop by model.moviesTop.collectAsState()
     val stateFavorite by model.moviesFavorite.collectAsState()
+    val stateSearch by model.moviesSearch.collectAsState()
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(color = colorBackground)
-            .padding(horizontal = 12.dp),
+            .padding(start = 12.dp, end = 12.dp, bottom = 50.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         var text by remember { mutableStateOf("") }
-
         val user = User(name = "Kaio Plandel", painterResource(id = R.drawable.profile))
-
-        SessionTop(user = user, text = text, onValue = { text = it })
-        Spacer(modifier = modifier.height(16.dp))
-        TitleSession(title = "Categories")
-        CategoriesSession(
-            categories = listOf(
-                "Action",
-                "Comedy",
-                "Romance",
-                "Romance",
+        SessionTop(user = user, text = text, onValue = {
+            text = it
+        })
+        Spacer(modifier = Modifier.padding(5.dp))
+        if (text.isNotEmpty()) {
+            model.searchMovie(text)
+            if (stateSearch.isNotEmpty()) {
+                SearchScreen(movies = stateSearch)
+            }
+        } else {
+            Spacer(modifier = modifier.height(16.dp))
+            TitleSession(title = "Categories")
+            CategoriesSession(
+                categories = listOf(
+                    "Action",
+                    "Comedy",
+                    "Romance",
+                    "Horror",
+                )
             )
-        )
-        if (state.isEmpty() && stateTop.isEmpty() && stateFavorite.isEmpty()) {
-            CircularProgressIndicator(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .wrapContentSize(align = Alignment.Center)
+            if (state.isEmpty() && stateTop.isEmpty() && stateFavorite.isEmpty()) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .wrapContentSize(align = Alignment.Center)
+                )
+            }
+            MoviesSession(
+                navController = navController,
+                lasMovies = state,
+                topMovies = stateTop,
+                favoriteMovies = stateFavorite
             )
         }
-        MoviesSession(
-            navController = navController,
-            lasMovies = state,
-            topMovies = stateTop,
-            favoriteMovies = stateFavorite
-        )
     }
 }
 
@@ -123,12 +142,14 @@ fun SessionTop(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun SearchItem(
     modifier: Modifier = Modifier,
     text: String,
     onValue: (String) -> Unit
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
     Surface(
         shape = RoundedCornerShape(20.dp),
         elevation = 4.dp,
@@ -156,7 +177,17 @@ private fun SearchItem(
                 maxLines = 1,
                 label = {
                     Text(text = "Search movie..")
-                }
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = {
+                    keyboardController?.hide()
+                }),
+                colors = TextFieldDefaults.textFieldColors(
+                    focusedIndicatorColor = Color.Transparent,
+                    focusedLabelColor = Color.Transparent,
+                    backgroundColor = Color.Transparent,
+                    textColor = Color.White
+                )
             )
         }
     }
@@ -186,23 +217,31 @@ fun CategoriesSession(
     modifier: Modifier = Modifier,
     categories: List<String>,
 ) {
+    var selected by remember {
+        mutableStateOf(0)
+    }
+
     Column {
         Spacer(modifier = Modifier.height(12.dp))
         LazyRow(
             modifier = modifier
                 .fillMaxWidth()
         ) {
-            items(categories) { category ->
+            items(categories.size) { indexCategory ->
                 Box(
                     modifier = Modifier
                         .padding(end = 12.dp)
                         .clip(RoundedCornerShape(25.dp))
-                        .background(colorSearchItem)
-                        .clickable { },
+                        .background(
+                            if (selected == indexCategory) Color.Blue else colorSearchItem
+                        )
+                        .clickable {
+                            selected = indexCategory
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = category,
+                        text = categories[indexCategory],
                         color = Color.White,
                         modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp)
                     )
@@ -309,6 +348,19 @@ fun MovieBox(
             )
         }
         Text(text = movie.title, color = Color.White)
+    }
+}
+
+@Composable
+fun SearchScreen(modifier: Modifier = Modifier, movies: List<Movie>) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        modifier = modifier
+            .scale(1.01f)
+    ) {
+        items(movies) { movie ->
+            MovieBox(movie = movie, onMovieClick = {})
+        }
     }
 }
 

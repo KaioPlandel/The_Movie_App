@@ -10,4 +10,6 @@ class MovieRepository @Inject constructor(
     suspend fun getMovies(session: String): ApiResponse = movieApi.getMovies(session)
 
     suspend fun getMovieById(id: Int): ApiResponse = movieApi.getMovieById(id)
+
+    suspend fun searchMovie(name: String?): ApiResponse = movieApi.searchMovie(name)
 }

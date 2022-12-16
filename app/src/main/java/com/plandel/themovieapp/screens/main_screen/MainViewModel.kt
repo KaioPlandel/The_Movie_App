@@ -3,6 +3,7 @@ package com.plandel.themovieapp.screens.main_screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.plandel.themovieapp.model.ApiResponse
 import com.plandel.themovieapp.model.Movie
 import com.plandel.themovieapp.repository.MovieRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,6 +23,9 @@ class MainViewModel @Inject constructor(private val repository: MovieRepository)
 
     private var _moviesFavorite= MutableStateFlow(emptyList<Movie>())
     val moviesFavorite: StateFlow<List<Movie>> get() = _moviesFavorite
+
+    private var _moviesSearch= MutableStateFlow(emptyList<Movie>())
+    val moviesSearch: StateFlow<List<Movie>> get() = _moviesSearch
 
     init {
         getLastMovies("lasted")
@@ -58,6 +62,17 @@ class MainViewModel @Inject constructor(private val repository: MovieRepository)
                 _moviesFavorite.value = response.movies
 
             } catch (e: Exception) {
+
+            }
+        }
+    }
+
+    fun searchMovie(name: String?){
+        viewModelScope.launch {
+            try {
+                var  response = repository.searchMovie(name)
+                _moviesSearch.value = response.movies
+            }catch (e: Exception){
 
             }
         }

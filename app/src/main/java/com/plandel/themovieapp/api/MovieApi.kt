@@ -15,4 +15,9 @@ interface MovieApi {
     suspend fun getMovieById(
         @Query("id") session: Int
     ): ApiResponse
+
+    @GET("/movies/v1/search")
+    suspend fun searchMovie(
+        @Query("name") name: String?
+    ): ApiResponse
 }
