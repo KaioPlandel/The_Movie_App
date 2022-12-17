@@ -28,16 +28,16 @@ class MainViewModel @Inject constructor(private val repository: MovieRepository)
     val moviesSearch: StateFlow<List<Movie>> get() = _moviesSearch
 
     init {
-        getLastMovies("lasted")
-        getTopMovies("top")
-        getFavoriteMovies("favorite")
+        getLastMovies()
     }
 
-    fun getLastMovies(session: String) {
+    fun getLastMovies() {
         viewModelScope.launch {
             try {
-                val response = repository.getMovies(session)
+                val response = repository.getMovies()
                 _moviesA.value = response.movies
+                _moviesTop.value = response.movies
+                _moviesFavorite.value = response.movies
 
             } catch (e: Exception) {
 
@@ -47,7 +47,7 @@ class MainViewModel @Inject constructor(private val repository: MovieRepository)
     fun getTopMovies(session: String) {
         viewModelScope.launch {
             try {
-                val response = repository.getMovies(session)
+                val response = repository.getMovies()
                 _moviesTop.value = response.movies
 
             } catch (e: Exception) {
@@ -58,7 +58,7 @@ class MainViewModel @Inject constructor(private val repository: MovieRepository)
     fun getFavoriteMovies(session: String) {
         viewModelScope.launch {
             try {
-                val response = repository.getMovies(session)
+                val response = repository.getMovies()
                 _moviesFavorite.value = response.movies
 
             } catch (e: Exception) {

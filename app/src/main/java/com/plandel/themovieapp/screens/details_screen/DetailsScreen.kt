@@ -85,7 +85,7 @@ fun ImageSession(modifier: Modifier = Modifier, movie: Movie) {
                 .padding(start = 13.dp, top = 5.dp, bottom = 5.dp)
 
         )
-        CategoriesSession(categories = movie.categories, modifier = Modifier.padding(start = 13.dp))
+      //  CategoriesSession(categories = movie.categories, modifier = Modifier.padding(start = 13.dp))
         DescriptionSession(movie = movie)
     }
 }

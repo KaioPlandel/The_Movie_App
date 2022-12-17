@@ -9,4 +9,5 @@ data class Movie(
     val description: String,
     val categories: List<String>,
     val rating: Double,
+    val year: Int,
 )

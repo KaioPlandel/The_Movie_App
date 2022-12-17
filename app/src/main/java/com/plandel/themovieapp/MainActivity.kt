@@ -23,8 +23,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.plandel.themovieapp.navigation.navGraph.SetupNavGraph
+import com.plandel.themovieapp.navigation.screens.MovieScreen
 import com.plandel.themovieapp.ui.theme.TheMovieAppTheme
 import com.plandel.themovieapp.ui.theme.colorBottomBar
 import com.plandel.themovieapp.ui.theme.colorButton
@@ -35,12 +37,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            val navController = rememberNavController()
             TheMovieAppTheme {
 
                 Scaffold(bottomBar = {
-                    BottomBarSession()
+                    BottomBarSession(navController)
                 }) {
-                    val navController = rememberNavController()
                     SetupNavGraph(navController)
                 }
             }
@@ -48,7 +50,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun BottomBarSession() {
+    private fun BottomBarSession(navController: NavController) {
         BottomAppBar(
             modifier = Modifier.height(70.dp),
             elevation = 6.dp,
@@ -57,7 +59,9 @@ class MainActivity : ComponentActivity() {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                buttonMovieBottomBar(title = "Movie") {}
+                buttonMovieBottomBar(title = "Movie") {
+                    navController.navigate(MovieScreen.MainScreen.route)
+                }
             }
         }
     }

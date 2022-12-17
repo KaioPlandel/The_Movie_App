@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -36,6 +37,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.plandel.themovieapp.R
+import com.plandel.themovieapp.model.Item
 import com.plandel.themovieapp.model.Movie
 import com.plandel.themovieapp.model.User
 import com.plandel.themovieapp.navigation.screens.MovieScreen
@@ -56,6 +58,10 @@ fun MainScreen(
     val stateFavorite by model.moviesFavorite.collectAsState()
     val stateSearch by model.moviesSearch.collectAsState()
 
+    var menuItem by remember {
+        mutableStateOf("")
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -73,34 +79,59 @@ fun MainScreen(
         if (text.isNotEmpty()) {
             model.searchMovie(text)
             if (stateSearch.isNotEmpty()) {
-                SearchScreen(movies = stateSearch)
+                GridScreen(navController = navController,movies = stateSearch)
             }
         } else {
             Spacer(modifier = modifier.height(16.dp))
             TitleSession(title = "Categories")
             CategoriesSession(
                 categories = listOf(
-                    "Action",
-                    "Comedy",
-                    "Romance",
-                    "Horror",
+                    Item(1, "Action"),
+                    Item(2, "Comedy"),
+                    Item(3, "Horror"),
+                    Item(4, "Adventuri"),
                 )
-            )
-            if (state.isEmpty() && stateTop.isEmpty() && stateFavorite.isEmpty()) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .wrapContentSize(align = Alignment.Center)
+            ) {
+                menuItem = it
+            }
+
+            if (menuItem.isNotEmpty()) {
+                if (menuItem == "Action") {
+                    if (stateTop.isEmpty()) Progressbar()
+                    GridScreen(navController = navController,movies = stateTop, modifier = Modifier.padding(top = 15.dp))
+                } else if (menuItem == "Comedy") {
+                    if (stateTop.isEmpty()) Progressbar()
+                    GridScreen(navController = navController,movies = state, modifier = Modifier.padding(top = 15.dp))
+                } else if (menuItem == "Horror") {
+                    if (stateTop.isEmpty()) Progressbar()
+                    GridScreen(navController = navController,movies = stateFavorite, modifier = Modifier.padding(top = 15.dp))
+                } else if (menuItem == "Adventuri") {
+                    if (stateTop.isEmpty()) Progressbar()
+                    GridScreen(navController = navController,movies = stateTop, modifier = Modifier.padding(top = 15.dp))
+                }
+            } else {
+                if (state.isEmpty() && stateTop.isEmpty() && stateFavorite.isEmpty()) {
+                    Progressbar()
+                }
+                Spacer(modifier = Modifier.padding(3.dp))
+                MoviesSession(
+                    navController = navController,
+                    lasMovies = state,
+                    topMovies = stateTop,
+                    favoriteMovies = stateFavorite
                 )
             }
-            MoviesSession(
-                navController = navController,
-                lasMovies = state,
-                topMovies = stateTop,
-                favoriteMovies = stateFavorite
-            )
         }
     }
+}
+
+@Composable
+private fun Progressbar() {
+    CircularProgressIndicator(
+        modifier = Modifier
+            .fillMaxSize()
+            .wrapContentSize(align = Alignment.Center)
+    )
 }
 
 @Composable
@@ -215,11 +246,10 @@ fun RoundImage(
 @Composable
 fun CategoriesSession(
     modifier: Modifier = Modifier,
-    categories: List<String>,
+    categories: List<Item>,
+    onItemClick: (String) -> Unit
 ) {
-    var selected by remember {
-        mutableStateOf(0)
-    }
+    var selectedIndex by remember { mutableStateOf(-1) }
 
     Column {
         Spacer(modifier = Modifier.height(12.dp))
@@ -227,21 +257,30 @@ fun CategoriesSession(
             modifier = modifier
                 .fillMaxWidth()
         ) {
-            items(categories.size) { indexCategory ->
+            items(categories) { category ->
                 Box(
                     modifier = Modifier
                         .padding(end = 12.dp)
                         .clip(RoundedCornerShape(25.dp))
                         .background(
-                            if (selected == indexCategory) Color.Blue else colorSearchItem
+                            if (category.id == selectedIndex) Color.Blue else colorSearchItem
                         )
-                        .clickable {
-                            selected = indexCategory
-                        },
+                        .selectable(
+                            selected = category.id == selectedIndex,
+                            onClick = {
+                                if (selectedIndex != category.id) {
+                                    selectedIndex = category.id
+                                    onItemClick(category.title)
+                                } else {
+                                    selectedIndex = -1
+                                    onItemClick("")
+                                }
+                            }
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = categories[indexCategory],
+                        text = category.title,
                         color = Color.White,
                         modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp)
                     )
@@ -347,19 +386,19 @@ fun MovieBox(
                 contentScale = ContentScale.Crop
             )
         }
-        Text(text = movie.title, color = Color.White)
+        Text(text = movie.title, color = Color.White, textAlign = TextAlign.Center)
     }
 }
 
 @Composable
-fun SearchScreen(modifier: Modifier = Modifier, movies: List<Movie>) {
+fun GridScreen(navController: NavController,modifier: Modifier = Modifier, movies: List<Movie>) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
         modifier = modifier
             .scale(1.01f)
     ) {
         items(movies) { movie ->
-            MovieBox(movie = movie, onMovieClick = {})
+            MovieBox(movie = movie, onMovieClick = {navController.navigate(MovieScreen.DetailsScreen.withArgrs(movie.id))})
         }
     }
 }

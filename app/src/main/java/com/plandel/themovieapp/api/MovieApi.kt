@@ -6,10 +6,8 @@ import retrofit2.http.Query
 
 interface MovieApi {
 
-    @GET("/movies/v1")
-    suspend fun getMovies(
-        @Query("session") session: String
-    ): ApiResponse
+    @GET("/movies")
+    suspend fun getMovies(): ApiResponse
 
     @GET("/movie/v1")
     suspend fun getMovieById(

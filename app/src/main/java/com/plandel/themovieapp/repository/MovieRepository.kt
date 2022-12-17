@@ -7,7 +7,7 @@ import javax.inject.Inject
 class MovieRepository @Inject constructor(
     private val movieApi: MovieApi
 ) {
-    suspend fun getMovies(session: String): ApiResponse = movieApi.getMovies(session)
+    suspend fun getMovies(): ApiResponse = movieApi.getMovies()
 
     suspend fun getMovieById(id: Int): ApiResponse = movieApi.getMovieById(id)
 
